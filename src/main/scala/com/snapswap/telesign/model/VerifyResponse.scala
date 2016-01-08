@@ -1,5 +1,7 @@
 package com.snapswap.telesign.model
 
+import com.snapswap.telesign.TelesignError
+
 /**
   * An object that describes aspects of the user's phone.
   *
@@ -8,7 +10,7 @@ package com.snapswap.telesign.model
   * @param language        The IETF Language Tag corresponding to the user's written language,
   *                        as they have configured it on their phone (in Language Setting).
   */
-case class Device(phoneNumber: String,
+private[telesign] case class Device(phoneNumber: String,
                   operatingSystem: String,
                   language: String)
 
@@ -18,16 +20,16 @@ case class Device(phoneNumber: String,
   * @param signature    The TeleSign-assigned ID associated with your whitelabel app.
   * @param createdOnUtc A timestamp value indicating when your whitelabel app was activated by TeleSign.
   */
-case class App(signature: String,
+private[telesign] case class App(signature: String,
                createdOnUtc: String)
 
-object EnumCallForwardAction extends Enumeration {
+private[telesign] object EnumCallForwardAction extends Enumeration {
   type CallForwardAction = Value
   val FLAG = Value("FLAG")
   val BLOCK = Value("BLOCK")
 }
 
-object EnumCallForward extends Enumeration {
+private[telesign] object EnumCallForward extends Enumeration {
   type CallForward = Value
   val FORWARDED, NOT_FORWARDED, UNAVAILABLE, UNSUPPORTED = Value
 }
@@ -38,10 +40,10 @@ object EnumCallForward extends Enumeration {
   * @param action      A string value that indicates FLAG or BLOCK
   * @param callForward Returns the following values: FORWARDED, NOT FORWARDED, UNAVAILABLE and UNSUPPORTED..
   */
-case class CallForwarding(action: EnumCallForwardAction.CallForwardAction,
+private[telesign] case class CallForwarding(action: EnumCallForwardAction.CallForwardAction,
                           callForward: EnumCallForward.CallForward)
 
-object EnumUserResponseSelection extends Enumeration {
+private[telesign] object EnumUserResponseSelection extends Enumeration {
   type UserResponseSelection = Value
   val ALLOWED = Value("ALLOWED")
   val DENIED = Value("DENIED")
@@ -56,12 +58,12 @@ object EnumUserResponseSelection extends Enumeration {
   * @param selection        Indicates the user's intention, as selected from three choices.
   *                         Possible values are ALLOWED, DENIED, and REPORTED_FRAUD.
   */
-case class UserResponse(received: String,
+private[telesign] case class UserResponse(received: String,
                         verificationCode: String,
                         selection: EnumUserResponseSelection.UserResponseSelection
                        )
 
-object EnumVerifyCodeState extends Enumeration {
+private[telesign] object EnumVerifyCodeState extends Enumeration {
   type VerifyCodeState = Value
   val VALID, INVALID, UNKNOWN = Value
 }
@@ -75,7 +77,7 @@ object EnumVerifyCodeState extends Enumeration {
   * @param codeEntered  Always set to an empty string.
   * @param codeExpected In case of code challenge, contains the verification code presented to the user otherwise contains null if Simple push verification.
   */
-case class Verify(codeState: EnumVerifyCodeState.VerifyCodeState,
+private[telesign] case class Verify(codeState: EnumVerifyCodeState.VerifyCodeState,
                   codeEntered: Option[String],
                   codeExpected: Option[String])
 
@@ -85,7 +87,7 @@ case class Verify(codeState: EnumVerifyCodeState.VerifyCodeState,
   * @param referenceId    A String containing a <em>reference identifier</em> that uniquely identifies the Request message that initiated this Response.
   * @param resourceUri    A String containing the URI for accesses the PhoneID resource.
   * @param subResource    A String containing the name of the subresource that was accessed. For example, "standard".
-  * @param errors         An array of [[com.snapswap.telesign.model.TelesignError]] objects.
+  * @param errors         An array of [[com.snapswap.telesign.TelesignError]] objects.
   *                       Each Error object contains information about an error condition that might have resulted from the Request.
   * @param status         An object containing details about the request status.
   * @param device         An object that describes aspects of the user's phone.
@@ -95,7 +97,7 @@ case class Verify(codeState: EnumVerifyCodeState.VerifyCodeState,
   * @param userResponse   An object that describes the user's verification response.
   * @param risk           An object that describes the risk score for the phone number specified in the request.
   */
-case class VerifyResponse(referenceId: Option[String],
+private[telesign] case class VerifyResponse(referenceId: Option[String],
                           resourceUri: Option[String],
                           subResource: Option[String],
                           errors: Seq[TelesignError],

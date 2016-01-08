@@ -1,4 +1,4 @@
-package com.snapswap.telesign.model
+package com.snapswap.telesign
 
 object EnumUseCaseCodes extends Enumeration {
   type UseCaseCode = Value

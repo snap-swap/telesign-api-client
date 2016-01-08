@@ -1,5 +1,7 @@
 package com.snapswap.telesign.model
 
+import com.snapswap.telesign.TelesignError
+
 /**
   * An object containing details about the original phone number passed to TeleSign PhoneID API.
   *
@@ -10,7 +12,7 @@ package com.snapswap.telesign.model
   * @param countryCode         A 1, 2, or 3-digit number representing the Country Dialing Code.
   *                            For example, the Country Dialing Code for both the U.S.A. and Canada is 1, and the Country Dialing Code for the United Kingdom is 44.
   */
-case class OriginalNumber(phoneNumber: String,
+private[telesign] case class OriginalNumber(phoneNumber: String,
                           completePhoneNumber: String,
                           countryCode: String)
 
@@ -25,7 +27,7 @@ case class OriginalNumber(phoneNumber: String,
   * @param cleansedCode One of the Phone Number Cleansing Codes describing the cleansing operation TeleSign performed on the phone number.
   *                     The default value is 100 (No changes were made to the phone number).
   */
-case class Number(phoneNumber: String,
+private[telesign] case class Number(phoneNumber: String,
                   countryCode: String,
                   minLength: Int,
                   maxLength: Int,
@@ -38,7 +40,7 @@ case class Number(phoneNumber: String,
   * @param sms  An object containing cleansing details about a phone number used for receiving text messages.
   * @param call An object containing cleansing details about a phone number used for receiving voice calls.
   */
-case class CleansingNumber(sms: Number,
+private[telesign] case class CleansingNumber(sms: Number,
                            call: Number)
 
 /**
@@ -48,7 +50,7 @@ case class CleansingNumber(sms: Number,
   * @param cleansing An object containing details about how the phone number was cleansed.
   *                  Phone Cleansing corrects common formatting issues in submitted phone numbers.
   */
-case class Numbering(original: Option[OriginalNumber],
+private[telesign] case class Numbering(original: Option[OriginalNumber],
                      cleansing: Option[CleansingNumber])
 
 /**
@@ -58,7 +60,7 @@ case class Numbering(original: Option[OriginalNumber],
   * @param iso3 The ISO 3166-1 3-letter Country Code associated with the phone number
   * @param name The Country Name associated with phone number.
   */
-case class Country(iso2: String,
+private[telesign] case class Country(iso2: String,
                    iso3: String,
                    name: String)
 
@@ -69,7 +71,7 @@ case class Country(iso2: String,
   * @param name         A string identifying the Time Zone Name (TZ) associated with the phone number (U.S. only). For example: "America/Los_Angeles".
   * @param utcOffsetMax For international phone numbers, this parameter returns the maximum UTC offset for the country associated with the phone number. For U.S. domestic phone numbers, this parameter returns the same result as utc_offset_min.
   */
-case class TimeZone(utcOffsetMin: Option[String],
+private[telesign] case class TimeZone(utcOffsetMin: Option[String],
                     name: Option[String],
                     utcOffsetMax: Option[String])
 
@@ -81,7 +83,7 @@ case class TimeZone(utcOffsetMin: Option[String],
   * @param longitude A value indicating the number of degrees of longitude of the location associated with the phone number, expressed in eight decimal digits, with five decimal places F
   *                  or example, -118.30840.
   */
-case class Coordinates(latitude: Option[Double],
+private[telesign] case class Coordinates(latitude: Option[Double],
                        longitude: Option[Double])
 
 /**
@@ -89,7 +91,7 @@ case class Coordinates(latitude: Option[Double],
   *
   * @param name The string specifying the name of the carrier.  For example: "Verizon".
   */
-case class Carrier(name: String)
+private[telesign] case class Carrier(name: String)
 
 /**
   * An object containing geographical location information associated with the phone number.
@@ -104,7 +106,7 @@ case class Carrier(name: String)
   * @param coordinates An object containing details about the geographical coordinates of the location where the phone number is registered.
   * @param metroCode   A 4-digit string indicating the Primary Metropolitan Statistical Area (PMSA) Code for the location associated with the phone number (U.S. only). PMSA Codes are governed by the US Census Bureau.
   */
-case class Location(county: Option[String],
+private[telesign] case class Location(county: Option[String],
                     city: Option[String],
                     state: Option[String],
                     zip: Option[String],
@@ -129,7 +131,7 @@ case class Location(county: Option[String],
   * @param carrier         An object containing information about the company that provides telecommunications services for the phone number.
   * @param risk            An object that describes the risk score for the phone number specified in the request.
   */
-case class PhoneIdResponse(referenceId: Option[String],
+private[telesign] case class PhoneIdResponse(referenceId: Option[String],
                            resourceUri: Option[String],
                            subResource: Option[String],
                            errors: Seq[TelesignError],

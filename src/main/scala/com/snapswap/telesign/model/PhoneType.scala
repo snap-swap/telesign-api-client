@@ -6,5 +6,5 @@ package com.snapswap.telesign.model
   * @param code        One of the <emphasis>Phone Type Codes</emphasis>.
   * @param description A description of the phone type.
   */
-case class PhoneType(code: String,
+private[telesign] case class PhoneType(code: String,
                      description: String)

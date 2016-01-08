@@ -1,6 +1,5 @@
 package com.snapswap.telesign
 
-import java.lang.RuntimeException
 import java.net.URLEncoder
 import java.util.Base64
 import javax.crypto.Mac
@@ -10,37 +9,36 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding._
-import akka.http.scaladsl.model.headers.{CustomHeader, Accept, OAuth2BearerToken, Authorization}
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.CustomHeader
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Sink, Source, Flow}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.snapswap.telesign.model._
-import org.joda.time.{DateTimeZone, DateTime}
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone}
 import spray.json._
 
-import scala.concurrent.{Await, Future}
-import scala.util.{Success, Try, Failure}
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
-class AkkaHttpTelesignClient(customerId: String, apiKey: String, auth: TelesignAuth)
+class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: EnumUseCaseCodes.UseCaseCode)
                             (implicit system: ActorSystem, materializer: Materializer) extends TelesignClient {
 
+  import TelesignDateFormat._
   import com.snapswap.telesign.unmarshaller.UnMarshaller$Verify._
   import system.dispatcher
-  import TelesignDateFormat._
 
   private val log = Logging(system, this.getClass)
   private val baseURL = "/v1"
   protected val decodedKey = Base64.getDecoder.decode(apiKey)
-  protected val signingKey = new SecretKeySpec(decodedKey, auth.spec)
+  protected val signingKey = new SecretKeySpec(decodedKey, "HmacSHA256")
   protected val mac = {
-    val _mac = Mac.getInstance(auth.spec)
+    val _mac = Mac.getInstance("HmacSHA256")
     _mac.init(signingKey)
     _mac
   }
 
-  override def phoneIdScore(number: String, useCaseCode: EnumUseCaseCodes.UseCaseCode): Future[PhoneIdScoreResult] =
+  override def getScore(number: String): Future[PhoneScore] =
     send(get(s"/phoneid/score/$number?ucid=$useCaseCode")) { responseStr =>
       val response = responseStr.parseJson.convertTo[PhoneIdResponse]
 
@@ -70,31 +68,36 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, auth: TelesignA
         }
         .getOrElse(EnumPhoneTypes.Other)
 
-      PhoneIdScoreResult(
+      PhoneScore(
         phone = phone,
         phoneType = _phoneType,
         score = _score)
     }
 
-  override def smsVerify(number: String, language: String = "en-US", template: String = "Your code is $$CODE$$"): Future[String] =
+  override def initiateVerification(number: String): Future[PhoneVerificationId] =
     send(
       post(s"/verify/sms",
         Map(
           "phone_number" -> number,
-          "language" -> language,
-          "template" -> template
+          "language" -> "en-US",
+          "template" -> "$$CODE$$"
         )
       )
     ) { responseStr =>
       val response = responseStr.parseJson.convertTo[SmsVerifyResponse]
 
-      response.referenceId
+      PhoneVerificationId(response.referenceId)
     }
 
-  override def verifyInfo(referenceId: String): Future[VerifyResponse] =
-    send(get(s"/verify/$referenceId")) { responseStr =>
-      log.error(s"$responseStr")
-      responseStr.parseJson.convertTo[VerifyResponse]
+  override def getVerification(id: PhoneVerificationId): Future[PhoneVerification] =
+    send(get(s"/verify/${id.value}")) { responseStr =>
+      val response = responseStr.parseJson.convertTo[VerifyResponse]
+
+
+      PhoneVerification(id,
+        response.errors,
+        EnumSmsStatusCodes.withCode(response.status.code)
+      )
     }
 
   private lazy val layerConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
@@ -131,7 +134,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, auth: TelesignA
           s"""$method
              |$contentType
              |
-             |x-ts-auth-method:${auth.header}
+             |x-ts-auth-method:HMAC-SHA256
              |x-ts-date:$date
              |$dataString
              |${request.uri.path}""".stripMargin
@@ -141,7 +144,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, auth: TelesignA
           s"""$method
              |$contentType
              |
-             |x-ts-auth-method:${auth.header}
+             |x-ts-auth-method:HMAC-SHA256
              |x-ts-date:$date
              |${request.uri.path}""".stripMargin
         )
@@ -157,7 +160,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, auth: TelesignA
             request
               .addHeader(signatureHeader(signature))
               .addHeader(dateHeader(date))
-              .addHeader(authMethodHeader(auth.header))
+              .addHeader(authMethodHeader("HMAC-SHA256"))
           )
           .via(layerConnectionFlow)
           .runWith(Sink.head)
@@ -201,11 +204,10 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, auth: TelesignA
             asString
           } else {
             log.warning(s"FAILURE ${request.method} ${request.uri} -> ${response.status} '$asString'")
-            throw TelesignException(asString)
-            //            throw asString.parseJson.convertTo[LayerException](unmarshaller.platform.layerExceptionFormat)
+            throw TelesignRequestError(asString.parseJson.convertTo[ErrorResponse].errors)
           }
-        }
-    }.map(handler)
+        }.map(handler)
+    }
   }
 
   private def get(path: String): HttpRequest = Get(baseURL + path)

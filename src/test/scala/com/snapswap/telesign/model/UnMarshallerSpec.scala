@@ -1,5 +1,6 @@
 package com.snapswap.telesign.model
 
+import com.snapswap.telesign.TelesignError
 import spray.json._
 import org.scalatest._
 

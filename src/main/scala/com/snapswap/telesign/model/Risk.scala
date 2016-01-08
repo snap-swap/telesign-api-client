@@ -7,6 +7,6 @@ package com.snapswap.telesign.model
   * @param score          One of the <strong>Score</strong> values.
   * @param recommendation A string indicating the action that TeleSign recommends that you take based on the risk score.
   */
-case class Risk(level: String,
+private[telesign] case class Risk(level: String,
                 score: Int,
                 recommendation: String)

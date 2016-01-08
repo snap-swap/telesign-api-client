@@ -1,6 +1,7 @@
 package com.snapswap.telesign.unmarshaller
 
-import com.snapswap.telesign.model.{Risk, Status, TelesignError}
+import com.snapswap.telesign.TelesignError
+import com.snapswap.telesign.model.{ErrorResponse, Risk, Status}
 import spray.json._
 
 trait CommonUnMarshaller extends DefaultJsonProtocol {
@@ -18,4 +19,6 @@ trait CommonUnMarshaller extends DefaultJsonProtocol {
   implicit val statusFormat = jsonFormat(Status, "updated_on", "code", "description")
 
   implicit val riskFormat = jsonFormat3(Risk)
+
+  implicit val errorResponseFormat = jsonFormat(ErrorResponse, "reference_id", "resource_uri", "sub_resource", "errors")
 }

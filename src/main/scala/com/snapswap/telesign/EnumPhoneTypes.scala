@@ -1,4 +1,4 @@
-package com.snapswap.telesign.model
+package com.snapswap.telesign
 
 object EnumRisks extends Enumeration {
   type Risk = Value

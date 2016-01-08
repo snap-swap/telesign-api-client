@@ -7,6 +7,6 @@ package com.snapswap.telesign.model
   * @param code        One of the<emphasis> Transaction Status Codes</emphasis>.
   * @param description A description of the transaction status.
   */
-case class Status(updatedOn: String,
+private[telesign] case class Status(updatedOn: String,
                   code: Int,
                   description: String)
