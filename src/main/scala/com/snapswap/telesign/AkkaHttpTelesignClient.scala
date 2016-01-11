@@ -48,10 +48,16 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
           .map(
             _.cleansing.map {
               cleansing =>
-                s"${cleansing.call.countryCode}${cleansing.call.phoneNumber}"
+                if(cleansing.call.cleansedCode > 101) {
+                  throw TelesignException(s"Can't get score for number [$number], because cleansing code [${cleansing.call.cleansedCode}] more than 101")
+                } else {
+                  s"${cleansing.call.countryCode}${cleansing.call.phoneNumber}"
+                }
             }
           ).flatten
-          .getOrElse(number)
+          .getOrElse {
+            throw TelesignException(s"Can't get score for number [$number], because cleansing call number is empty")
+          }
 
       val _score: Int = response.risk.map(_.score).getOrElse(-1)
       val _phoneType = response
@@ -74,13 +80,13 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
         score = _score)
     }
 
-  override def initiateVerification(number: String): Future[PhoneVerificationId] =
+  override def initiateVerification(number: String, code: String): Future[PhoneVerificationId] =
     send(
       post(s"/verify/sms",
         Map(
           "phone_number" -> number,
           "language" -> "en-US",
-          "template" -> "$$CODE$$"
+          "template" -> code
         )
       )
     ) { responseStr =>
