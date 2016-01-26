@@ -43,7 +43,7 @@ object EnumPhoneTypes extends Enumeration {
   /**
     * These telephones can be purchased anonymously at department stores.
     * They work like other mobile phones, but their users are not contracted with a mobile phone company.
-    * Prepaid mobile phones generally cost between $30 and $100, making them unattractive for most fraudsters, but TeleSign recommends flagging transactions made with this type of telephone due to users’ anonymity.
+    * Prepaid mobile phones generally cost between $ 30 and $ 100, making them unattractive for most fraudsters, but TeleSign recommends flagging transactions made with this type of telephone due to users’ anonymity.
     * Also, not all prepaid mobile phones will be identified as prepaid; some will be identified as Mobile.
     */
   val PrePaidMobile = PhoneTypeValue(3, MediumHigh, Flag)
