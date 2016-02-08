@@ -2,7 +2,7 @@ name := "telesign-api-client"
 
 organization  := "com.snapswap"
 
-version       := "0.0.3"
+version       := "0.0.4"
 
 scalaVersion  := "2.11.7"
 
@@ -11,7 +11,7 @@ scalacOptions := Seq("-feature", "-unchecked", "-deprecation", "-language:existe
 resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
 
 libraryDependencies ++= {
-  val akkaStreamV = "2.0"
+  val akkaStreamV = "2.0-M2"
   val akkaV = "2.4.1"
   Seq(
     "com.typesafe.akka" %% "akka-http-core-experimental" % akkaStreamV exclude("com.typesafe.akka", "akka-actor_2.11"),
