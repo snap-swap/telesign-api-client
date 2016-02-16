@@ -25,7 +25,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
                             (implicit system: ActorSystem, materializer: Materializer) extends TelesignClient {
 
   import TelesignDateFormat._
-  import com.snapswap.telesign.unmarshaller.UnMarshaller$Verify._
+  import com.snapswap.telesign.unmarshaller.UnMarshallerVerify._
   import system.dispatcher
 
   private val log = Logging(system, this.getClass)

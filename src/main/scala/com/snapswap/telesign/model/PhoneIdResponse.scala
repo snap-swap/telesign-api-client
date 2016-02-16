@@ -29,8 +29,8 @@ private[telesign] case class OriginalNumber(phoneNumber: String,
   */
 private[telesign] case class Number(phoneNumber: String,
                   countryCode: String,
-                  minLength: Int,
-                  maxLength: Int,
+                  minLength: Option[Int],
+                  maxLength: Option[Int],
                   cleansedCode: Int)
 
 /**

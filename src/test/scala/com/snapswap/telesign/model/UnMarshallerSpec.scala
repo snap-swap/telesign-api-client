@@ -6,7 +6,7 @@ import org.scalatest._
 
 class UnMarshallerSpec extends WordSpecLike with Matchers {
 
-  import com.snapswap.telesign.unmarshaller.UnMarshaller$Verify._
+  import com.snapswap.telesign.unmarshaller.UnMarshallerVerify._
 
   "Unmarshaller" should {
     "be able to parse phoneId Standart response" in {
@@ -19,6 +19,12 @@ class UnMarshallerSpec extends WordSpecLike with Matchers {
       val result = phoneIdAuthorizationErrorResponse.parseJson.convertTo[PhoneIdResponse]
 
       result.errors shouldBe Seq(TelesignError(-30000, "Invalid Customer ID.."))
+    }
+    "correct parse success response" in {
+      val result = sucessStrangeResponse.parseJson.convertTo[PhoneIdResponse]
+
+      result.referenceId shouldBe Some("454BA1BEDF68131C90013547125EB86A")
+      result.subResource shouldBe Some("score")
     }
   }
 
@@ -126,4 +132,73 @@ class UnMarshallerSpec extends WordSpecLike with Matchers {
       |   ]
       |}
     """.stripMargin
+
+  val sucessStrangeResponse =
+    """{
+      |  "reference_id": "454BA1BEDF68131C90013547125EB86A",
+      |  "resource_uri": null,
+      |  "sub_resource": "score",
+      |  "status": {
+      |    "updated_on": "2016-02-16T04:56:21.786240Z",
+      |    "code": 300,
+      |    "description": "Transaction successfully completed"
+      |  },
+      |  "errors": [],
+      |  "numbering": {
+      |    "original": {
+      |      "complete_phone_number": "43343434",
+      |      "country_code": "43",
+      |      "phone_number": "343434"
+      |    },
+      |    "cleansing": {
+      |      "call": {
+      |        "country_code": "43",
+      |        "phone_number": "343434",
+      |        "cleansed_code": 103,
+      |        "min_length": null,
+      |        "max_length": null
+      |      },
+      |      "sms": {
+      |        "country_code": "43",
+      |        "phone_number": "343434",
+      |        "cleansed_code": 103,
+      |        "min_length": null,
+      |        "max_length": null
+      |      }
+      |    }
+      |  },
+      |  "phone_type": {
+      |    "code": "8",
+      |    "description": "INVALID"
+      |  },
+      |  "location": {
+      |    "city": null,
+      |    "state": null,
+      |    "zip": null,
+      |    "metro_code": null,
+      |    "county": null,
+      |    "country": {
+      |      "name": "Austria",
+      |      "iso2": "AT",
+      |      "iso3": "AUT"
+      |    },
+      |    "coordinates": {
+      |      "latitude": null,
+      |      "longitude": null
+      |    },
+      |    "time_zone": {
+      |      "name": null,
+      |      "utc_offset_min": null,
+      |      "utc_offset_max": null
+      |    }
+      |  },
+      |  "carrier": {
+      |    "name": ""
+      |  },
+      |  "risk": {
+      |    "level": "high",
+      |    "recommendation": "block",
+      |    "score": 959
+      |  }
+      |}""".stripMargin
 }

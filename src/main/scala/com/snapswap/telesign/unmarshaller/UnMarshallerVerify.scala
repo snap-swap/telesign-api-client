@@ -1,6 +1,6 @@
 package com.snapswap.telesign.unmarshaller
 
-object UnMarshaller$Verify
+object UnMarshallerVerify
   extends CommonUnMarshaller
     with VerifyResponseUnMarshaller
     with PhoneIdResponseUnMarshaller
