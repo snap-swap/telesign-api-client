@@ -1,13 +1,11 @@
 package com.snapswap.telesign.model
 
 import com.snapswap.telesign.TelesignError
+import com.snapswap.telesign.unmarshaller.UnMarshallerVerify
 import spray.json._
 import org.scalatest._
 
-class UnMarshallerSpec extends WordSpecLike with Matchers {
-
-  import com.snapswap.telesign.unmarshaller.UnMarshallerVerify._
-
+class UnMarshallerSpec extends WordSpecLike with Matchers with UnMarshallerVerify {
   "Unmarshaller" should {
     "be able to parse phoneId Standart response" in {
       val result = phoneIdScoreResponse.parseJson.convertTo[PhoneIdResponse]
