@@ -10,7 +10,7 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.CustomHeader
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
@@ -45,16 +45,14 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
       val phone: String =
         response
           .numbering
-          .map(
-            _.cleansing.map {
-              cleansing =>
-                if(cleansing.call.cleansedCode > 101) {
-                  throw TelesignException(s"Can't get score for number [$number], because cleansing code [${cleansing.call.cleansedCode}] more than 101")
-                } else {
-                  s"${cleansing.call.countryCode}${cleansing.call.phoneNumber}"
-                }
+          .flatMap(_.cleansing.map {
+          cleansing =>
+            if (cleansing.call.cleansedCode > 101) {
+              throw TelesignException(s"Can't get score for number [$number], because cleansing code [${cleansing.call.cleansedCode}] more than 101")
+            } else {
+              s"${cleansing.call.countryCode}${cleansing.call.phoneNumber}"
             }
-          ).flatten
+        })
           .getOrElse {
             throw TelesignException(s"Can't get score for number [$number], because cleansing call number is empty")
           }
@@ -108,7 +106,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
 
   private lazy val layerConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
     Http()
-      .outgoingConnectionTls("rest.telesign.com", 443)
+      .outgoingConnectionHttps("rest.telesign.com", 443)
       .log("telesign")
 
   private def http(request: HttpRequest): Future[HttpResponse] = {
@@ -174,31 +172,13 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
   }
 
   def signatureHeader(signature: String): HttpHeader =
-    new CustomHeader() {
-      override def value(): String =
-        s"TSA $customerId:$signature"
-
-      override def name(): String =
-        "Authorization"
-    }
+    RawHeader("Authorization", s"TSA $customerId:$signature")
 
   def dateHeader(date: String): HttpHeader =
-    new CustomHeader() {
-      override def value(): String =
-        date
-
-      override def name(): String =
-        "x-ts-date"
-    }
+    RawHeader("x-ts-date", date)
 
   def authMethodHeader(method: String): HttpHeader =
-    new CustomHeader() {
-      override def value(): String =
-        method
-
-      override def name(): String =
-        "x-ts-auth-method"
-    }
+    RawHeader("x-ts-auth-method", method)
 
   private def send[T](request: HttpRequest)(handler: String => T): Future[T] = {
     http(request).flatMap { response =>
