@@ -4,7 +4,7 @@ import java.net.URLEncoder
 import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-
+import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
@@ -14,12 +14,9 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.snapswap.telesign.model._
 import org.joda.time.{DateTime, DateTimeZone}
 import spray.json._
-
-import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import com.snapswap.telesign.model._
 
 class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: EnumUseCaseCodes.UseCaseCode)
                             (implicit system: ActorSystem, materializer: Materializer) extends TelesignClient {
@@ -40,42 +37,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
 
   override def getScore(number: String): Future[PhoneScore] =
     send(get(s"/phoneid/score/$number?ucid=$useCaseCode")) { responseStr =>
-      val response = responseStr.parseJson.convertTo[PhoneIdResponse]
-
-      val phone: String =
-        response
-          .numbering
-          .flatMap(_.cleansing.map {
-          cleansing =>
-            if (cleansing.call.cleansedCode > 101) {
-              throw TelesignException(s"Can't get score for number [$number], because cleansing code [${cleansing.call.cleansedCode}] more than 101")
-            } else {
-              s"${cleansing.call.countryCode}${cleansing.call.phoneNumber}"
-            }
-        })
-          .getOrElse {
-            throw TelesignException(s"Can't get score for number [$number], because cleansing call number is empty")
-          }
-
-      val _score: Int = response.risk.map(_.score).getOrElse(-1)
-      val _phoneType = response
-        .phoneType
-        .map {
-          case pt =>
-            Try(EnumPhoneTypes.withId(pt.code.toInt)) match {
-              case Success(pt) =>
-                pt
-              case Failure(ex) =>
-                print(ex)
-                EnumPhoneTypes.Other
-            }
-        }
-        .getOrElse(EnumPhoneTypes.Other)
-
-      PhoneScore(
-        phone = phone,
-        phoneType = _phoneType,
-        score = _score)
+      responseStr.parseJson.convertTo[PhoneScore]
     }
 
   override def initiateVerification(number: String, code: String): Future[PhoneVerificationId] =
@@ -190,7 +152,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
             asString
           } else {
             log.warning(s"FAILURE ${request.method} ${request.uri} -> ${response.status} '$asString'")
-            throw TelesignRequestError(asString.parseJson.convertTo[ErrorResponse].errors)
+            throw TelesignRequestFailure(asString.parseJson.convertTo[ErrorResponse].errors)
           }
         }.map(handler)
     }

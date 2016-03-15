@@ -1,28 +1,25 @@
 package com.snapswap.telesign.model
 
-import com.snapswap.telesign.TelesignError
+import com.snapswap.telesign.{EnumPhoneTypes, TelesignError, PhoneScore, TelesignInvalidPhoneNumber}
 import com.snapswap.telesign.unmarshaller.UnMarshallerVerify
 import spray.json._
 import org.scalatest._
 
 class UnMarshallerSpec extends WordSpecLike with Matchers with UnMarshallerVerify {
   "Unmarshaller" should {
-    "be able to parse phoneId Standart response" in {
-      val result = phoneIdScoreResponse.parseJson.convertTo[PhoneIdResponse]
-
-      result.referenceId shouldBe Some("35485E92B394131C9046279B2E6E6C2F")
-      result.subResource shouldBe Some("score")
+    "be able to parse PhoneScore from a success response" in {
+      val score = phoneIdScoreResponse.parseJson.convertTo[PhoneScore]
+      score.phone shouldBe "79206119288"
+      score.phoneType shouldBe EnumPhoneTypes.Mobile
+      score.score shouldBe 11
     }
-    "be able to parse phoneId response when Authorization error happens" in {
-      val result = phoneIdAuthorizationErrorResponse.parseJson.convertTo[PhoneIdResponse]
-
-      result.errors shouldBe Seq(TelesignError(-30000, "Invalid Customer ID.."))
+    "be able to parse errors from a failure response" in {
+      val errorResponse = phoneIdAuthorizationErrorResponse.parseJson.convertTo[ErrorResponse]
+      errorResponse.errors shouldBe Seq(TelesignError(-30000, "Invalid Customer ID.."))
     }
-    "correct parse success response" in {
-      val result = sucessStrangeResponse.parseJson.convertTo[PhoneIdResponse]
-
-      result.referenceId shouldBe Some("454BA1BEDF68131C90013547125EB86A")
-      result.subResource shouldBe Some("score")
+    "fail with TelesignInvalidPhoneNumber the case of invalid phone number" in {
+      val thrown = the [TelesignInvalidPhoneNumber] thrownBy invalidPhone.parseJson.convertTo[PhoneScore]
+      thrown.getMessage shouldBe "The phone number appears to be formatted correctly, but cannot be matched to any specific area"
     }
   }
 
@@ -131,72 +128,72 @@ class UnMarshallerSpec extends WordSpecLike with Matchers with UnMarshallerVerif
       |}
     """.stripMargin
 
-  val sucessStrangeResponse =
+  val invalidPhone =
     """{
-      |  "reference_id": "454BA1BEDF68131C90013547125EB86A",
-      |  "resource_uri": null,
-      |  "sub_resource": "score",
-      |  "status": {
-      |    "updated_on": "2016-02-16T04:56:21.786240Z",
-      |    "code": 300,
-      |    "description": "Transaction successfully completed"
-      |  },
-      |  "errors": [],
-      |  "numbering": {
-      |    "original": {
-      |      "complete_phone_number": "43343434",
-      |      "country_code": "43",
-      |      "phone_number": "343434"
-      |    },
-      |    "cleansing": {
-      |      "call": {
-      |        "country_code": "43",
-      |        "phone_number": "343434",
-      |        "cleansed_code": 103,
-      |        "min_length": null,
-      |        "max_length": null
-      |      },
-      |      "sms": {
-      |        "country_code": "43",
-      |        "phone_number": "343434",
-      |        "cleansed_code": 103,
-      |        "min_length": null,
-      |        "max_length": null
-      |      }
-      |    }
-      |  },
-      |  "phone_type": {
-      |    "code": "8",
-      |    "description": "INVALID"
-      |  },
-      |  "location": {
-      |    "city": null,
-      |    "state": null,
-      |    "zip": null,
-      |    "metro_code": null,
-      |    "county": null,
-      |    "country": {
-      |      "name": "Austria",
-      |      "iso2": "AT",
-      |      "iso3": "AUT"
-      |    },
-      |    "coordinates": {
-      |      "latitude": null,
-      |      "longitude": null
-      |    },
-      |    "time_zone": {
-      |      "name": null,
-      |      "utc_offset_min": null,
-      |      "utc_offset_max": null
-      |    }
-      |  },
-      |  "carrier": {
-      |    "name": ""
-      |  },
-      |  "risk": {
-      |    "level": "high",
-      |    "recommendation": "block",
-      |    "score": 959
-      |  }
+      |	"reference_id": "354DE1F545D0101C904497FEBFAEC2B8",
+      |	"resource_uri": null,
+      |	"sub_resource": "score",
+      |	"status": {
+      |		"updated_on": "2016-03-15T04:16:32.289570Z",
+      |		"code": 300,
+      |		"description": "Transaction successfully completed"
+      |	},
+      |	"errors": [],
+      |	"numbering": {
+      |		"original": {
+      |			"complete_phone_number": "3521234567",
+      |			"country_code": "352",
+      |			"phone_number": "1234567"
+      |		},
+      |		"cleansing": {
+      |			"call": {
+      |				"country_code": "352",
+      |				"phone_number": "1234567",
+      |				"cleansed_code": 103,
+      |				"min_length": null,
+      |				"max_length": null
+      |			},
+      |			"sms": {
+      |				"country_code": "352",
+      |				"phone_number": "1234567",
+      |				"cleansed_code": 103,
+      |				"min_length": null,
+      |				"max_length": null
+      |			}
+      |		}
+      |	},
+      |	"phone_type": {
+      |		"code": "8",
+      |		"description": "INVALID"
+      |	},
+      |	"location": {
+      |		"city": null,
+      |		"state": null,
+      |		"zip": null,
+      |		"metro_code": null,
+      |		"county": null,
+      |		"country": {
+      |			"name": "Luxembourg",
+      |			"iso2": "LU",
+      |			"iso3": "LUX"
+      |		},
+      |		"coordinates": {
+      |			"latitude": null,
+      |			"longitude": null
+      |		},
+      |		"time_zone": {
+      |			"name": null,
+      |			"utc_offset_min": null,
+      |			"utc_offset_max": null
+      |		}
+      |	},
+      |	"carrier": {
+      |		"name": ""
+      |	},
+      |	"risk": {
+      |		"level": "high",
+      |		"recommendation": "block",
+      |		"score": 959
+      |	}
       |}""".stripMargin
 }
