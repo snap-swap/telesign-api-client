@@ -11,6 +11,7 @@ class UnMarshallerSpec extends WordSpecLike with Matchers with UnMarshallerVerif
       val score = phoneIdScoreResponse.parseJson.convertTo[PhoneScore]
       score.phone shouldBe "79206119288"
       score.phoneType shouldBe EnumPhoneTypes.Mobile
+      score.country shouldBe "RUS"
       score.score shouldBe 11
     }
     "be able to parse errors from a failure response" in {

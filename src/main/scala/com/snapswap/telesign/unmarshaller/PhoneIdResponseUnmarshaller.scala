@@ -27,6 +27,9 @@ trait PhoneIdResponseUnMarshaller
       if (response.errors.nonEmpty) {
         throw TelesignRequestFailure(response.errors)
       } else {
+        val country: String = response.location.flatMap(_.country.map(_.iso3)).getOrElse {
+          throw TelesignInvalidPhoneNumber("ISO 3166-1 3-letter country code is not detected")
+        }
         val phone: String =
           response
             .numbering
@@ -55,6 +58,7 @@ trait PhoneIdResponseUnMarshaller
 
         PhoneScore(
           phone = phone,
+          country = country,
           phoneType = _phoneType,
           score = _score)
       }
