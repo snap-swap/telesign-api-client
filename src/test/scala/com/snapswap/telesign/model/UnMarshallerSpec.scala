@@ -1,27 +1,27 @@
 package com.snapswap.telesign.model
 
+import org.scalatest.{FlatSpec, Matchers}
+import spray.json._
 import com.snapswap.telesign.{EnumPhoneTypes, TelesignError, PhoneScore, TelesignInvalidPhoneNumber}
 import com.snapswap.telesign.unmarshaller.UnMarshallerVerify
-import spray.json._
-import org.scalatest._
 
-class UnMarshallerSpec extends WordSpecLike with Matchers with UnMarshallerVerify {
-  "Unmarshaller" should {
-    "be able to parse PhoneScore from a success response" in {
-      val score = phoneIdScoreResponse.parseJson.convertTo[PhoneScore]
-      score.phone shouldBe "79206119288"
-      score.phoneType shouldBe EnumPhoneTypes.Mobile
-      score.country shouldBe "RUS"
-      score.score shouldBe 11
-    }
-    "be able to parse errors from a failure response" in {
-      val errorResponse = phoneIdAuthorizationErrorResponse.parseJson.convertTo[ErrorResponse]
-      errorResponse.errors shouldBe Seq(TelesignError(-30000, "Invalid Customer ID.."))
-    }
-    "fail with TelesignInvalidPhoneNumber the case of invalid phone number" in {
-      val thrown = the [TelesignInvalidPhoneNumber] thrownBy invalidPhone.parseJson.convertTo[PhoneScore]
-      thrown.getMessage shouldBe "The phone number appears to be formatted correctly, but cannot be matched to any specific area"
-    }
+class UnMarshallerSpec extends FlatSpec with Matchers {
+  import UnMarshallerVerify._
+
+  "Unmarshaller" should "be able to parse PhoneScore from a success response" in {
+    val score = phoneIdScoreResponse.parseJson.convertTo[PhoneScore]
+    score.phone shouldBe "79201111111"
+    score.phoneType shouldBe EnumPhoneTypes.Mobile
+    score.country shouldBe "RUS"
+    score.score shouldBe 11
+  }
+  it should "be able to parse errors from a failure response" in {
+    val errorResponse = phoneIdAuthorizationErrorResponse.parseJson.convertTo[ErrorResponse]
+    errorResponse.errors shouldBe Seq(TelesignError(-30000, "Invalid Customer ID.."))
+  }
+  it should "fail with TelesignInvalidPhoneNumber the case of invalid phone number" in {
+    val thrown = the [TelesignInvalidPhoneNumber] thrownBy invalidPhone.parseJson.convertTo[PhoneScore]
+    thrown.getMessage shouldBe "The phone number appears to be formatted correctly, but cannot be matched to any specific area"
   }
 
   private val phoneIdScoreResponse =
@@ -37,21 +37,21 @@ class UnMarshallerSpec extends WordSpecLike with Matchers with UnMarshallerVerif
       |  "errors": [],
       |  "numbering": {
       |    "original": {
-      |      "complete_phone_number": "79206119288",
+      |      "complete_phone_number": "79201111111",
       |      "country_code": "7",
-      |      "phone_number": "9206119288"
+      |      "phone_number": "9201111111"
       |    },
       |    "cleansing": {
       |      "call": {
       |        "country_code": "7",
-      |        "phone_number": "9206119288",
+      |        "phone_number": "9201111111",
       |        "cleansed_code": 100,
       |        "min_length": 10,
       |        "max_length": 10
       |      },
       |      "sms": {
       |        "country_code": "7",
-      |        "phone_number": "9206119288",
+      |        "phone_number": "9201111111",
       |        "cleansed_code": 100,
       |        "min_length": 10,
       |        "max_length": 10
