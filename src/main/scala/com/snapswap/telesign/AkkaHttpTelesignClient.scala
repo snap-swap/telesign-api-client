@@ -68,7 +68,7 @@ class AkkaHttpTelesignClient(customerId: String, apiKey: String, useCaseCode: En
 
   private lazy val layerConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
     Http()
-      .outgoingConnectionHttps("rest.telesign.com", 443)
+      .outgoingConnectionHttps("rest-ww.telesign.com", 443)
       .log("telesign")
 
   private def http(request: HttpRequest): Future[HttpResponse] = {
